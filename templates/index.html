@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalkulator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+    }
+
+    .container {
+      display: flex;
+      gap: 20px;
+      width: 800px;
+      background: #fff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .calculator {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen {
+      background-color: #000;
+      color: #fff;
+      font-size: 2rem;
+      text-align: right;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .button {
+      padding: 20px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .button:active {
+      transform: scale(0.95);
+    }
+
+    .button.operator {
+      background-color: orange;
+      color: #fff;
+    }
+
+    .button.equal {
+      background-color: green;
+      color: #fff;
+      grid-column: span 2;
+    }
+
+    .history {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .history-title {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+
+    .history-list {
+      background-color: #f0f0f0;
+      flex: 1;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      padding: 5px 0;
+      font-size: 1rem;
+      border-bottom: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="calculator">
+      <div class="screen" id="screen">0</div>
+      <div class="buttons">
+        <button class="button" onclick="clearScreen()">C</button>
+        <button class="button" onclick="appendSymbol('%')">%</button>
+        <button class="button" onclick="appendSymbol('/')">/</button>
+        <button class="button operator" onclick="appendSymbol('*')">x</button>
+        <button class="button" onclick="appendSymbol('7')">7</button>
+        <button class="button" onclick="appendSymbol('8')">8</button>
+        <button class="button" onclick="appendSymbol('9')">9</button>
+        <button class="button operator" onclick="appendSymbol('-')">-</button>
+        <button class="button" onclick="appendSymbol('4')">4</button>
+        <button class="button" onclick="appendSymbol('5')">5</button>
+        <button class="button" onclick="appendSymbol('6')">6</button>
+        <button class="button operator" onclick="appendSymbol('+')">+</button>
+        <button class="button" onclick="appendSymbol('1')">1</button>
+        <button class="button" onclick="appendSymbol('2')">2</button>
+        <button class="button" onclick="appendSymbol('3')">3</button>
+        <button class="button equal" onclick="calculate()">=</button>
+        <button class="button" onclick="appendSymbol('0')">0</button>
+        <button class="button" onclick="appendSymbol('.')">.</button>
+      </div>
+    </div>
+    <div class="history">
+      <div class="history-title">History</div>
+      <div class="history-list" id="history"></div>
+    </div>
+  </div>
+
+  <script>
+    let expression = '';
+
+    function appendSymbol(symbol) {
+      const screen = document.getElementById('screen');
+      if (screen.textContent === '0') {
+        screen.textContent = symbol;
+      } else {
+        screen.textContent += symbol;
+      }
+      expression = screen.textContent;
+    }
+
+    function clearScreen() {
+      document.getElementById('screen').textContent = '0';
+      expression = '';
+    }
+
+    async function calculate() {
+      try {
+        const response = await fetch('/calculate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ expression }),
+        });
+
+        const data = await response.json();
+        if (data.result !== undefined) {
+          document.getElementById('screen').textContent = data.result;
+          updateHistory(data.history);
+        } else {
+          alert('Error: ' + data.error);
+        }
+      } catch (error) {
+        alert('Error connecting to the server.');
+      }
+    }
+
+    function updateHistory(history) {
+      const historyList = document.getElementById('history');
+      historyList.innerHTML = '';
+      history.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.textContent = item;
+        historyList.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>
