@@ -26,5 +26,11 @@ def calculate():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
+@app.route("/clear-history", methods=["POST"])
+def clear_history():
+    global history
+    history.clear()  # Hapus semua history
+    return jsonify({"message": "History cleared!"})
+
 if __name__ == '__main__':
     app.run(debug=True)
